@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGASEEK風ポートフォリオ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+      background: #fff;
+    }
+    .top-bar {
+      font-size: 12px;
+      text-align: center;
+      padding: 5px;
+      background: #f2f2f2;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header .logo {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .header .logo a{
+            text-decoration: none;
+      color: #333;
+    }
+    .header .user-actions a {
+      margin-left: 15px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+    }
+    .banner {
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(to right, orange, yellow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+    .search-container input {
+      width: 300px;
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+      background: #fff;
+      padding-top: 10px;
+      gap: 10px;
+    }
+    nav a {
+      padding: 10px 100px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    nav .women{
+      border-bottom: 2px solid #000;
+    }
+    nav .men{
+      color: #ccc;
+    }
+    nav .men:hover{
+      color: #000;
+      border-bottom: 2px solid #000;
+    }
+    .main-content {
+      padding: 20px;
+      text-align: center;
+      max-width: 1000px;
+    }
+    .main-banner {
+      width: 100%;
+      height: auto;
+      max-width: 800px;
+      margin: 0 auto 30px;
+    }
+    .topics {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .topic-item {
+      width: 150px;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    .sidebar {
+      display: inline-block;
+      width: 250px;
+      vertical-align: top;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+    }
+    .sidebar h3 {
+      margin-bottom: 10px;
+    }
+    .sidebar a{
+      text-decoration: none;
+    }
+    .sidebar ul{
+      border-top: 1px solid #ddd;
+    }
+    .sidebar li{
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .sidebar img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+    .category-name {
+      flex-grow: 1;
+      font-size: 14px;
+      color: #333;
+    }
+    .arrow {
+      color: #999;
+      font-weight: bold;
+    }
+    .content-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* .new-arrival {
+    padding: 30px;
+    width: 100%;
+    margin: auto;
+  } */
+    /* .new-arrival {
+  padding: 30px;
+  max-width: 800px;
+  margin: auto;
+} */
+.new-arrival h2 {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.new-arrival h2 span {
+  display: block;
+  font-size: 14px;
+  color: gray;
+}
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+/* .product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+} */
+ .product-card {
+  flex: 1 1 200px; /* 幅200pxで横並び＆自動折返し */
+  max-width: 220px;
+}
+/* .product-card {
+  position: relative;
+  font-family: sans-serif;
+} */
+.product-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+}
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.label {
+  position: absolute;
+  top: 5px;
+  font-size: 12px;
+  padding: 2px 6px;
+  color: white;
+  border-radius: 3px;
+}
+.label.discount {
+  left: 5px;
+  background-color: #d00;
+}
+.label.point {
+  left: 70px;
+  background-color: #f90;
+}
+.brand {
+  font-size: 12px;
+  margin-top: 5px;
+  color: #555;
+}
+.name {
+  font-size: 14px;
+  margin: 3px 0;
+  line-height: 1.3;
+}
+.price {
+  color: #d00;
+  font-weight: bold;
+}
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    サイズ交換・返品可能！翌日お届け！5000円以上で送料無料！
+  </div>
+  <header class="header">
+    <div class="logo"><a href="portforio-main.html">Natural</a></div>
+    <div class="user-actions">
+      <a href="portforio-login.html">ログイン</a>
+      <a href="portforio-register.html">新規会員登録</a>
+      <a href="#">マイブランド</a>
+      <a href="#">お気に入り</a>
+      <a href="#">カート</a>
+    </div>
+  </header>
+  <div class="banner">GIGA SUMMER SALE 最大94%OFF / TIME SALE 夏アイテムがさらにお得！</div>
+  <div class="search-container">
+    <input type="text" placeholder="何をお探しですか？">
+  </div>
+  <nav class="gender-selection">
+    <a href="#" class="women">WOMEN</a>
+    <a href="#" class="men">MEN</a>
+  </nav>
+  <div class="content-wrapper">
+    <aside class="sidebar">
+      <h3>カテゴリー</h3>
+      <ul>
+        <a href="#">
+          <li>
+            <img src="img/Tops.png" alt="トップス">
+            <span class="category-name">トップス</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Pants.png" alt="パンツ">
+            <span class="category-name">パンツ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Jackets.png" alt="ジャケット・アウター">
+            <span class="category-name">ジャケット・アウター</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Suit.png" alt="スーツ">
+            <span class="category-name">スーツ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Set-up.png" alt="オーバーオール・セットアップ">
+            <span class="category-name">オーバーオール・セットアップ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Underwear.png" alt="下着・ルームウェア">
+            <span class="category-name">下着・ルームウェア</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Swimwear.png" alt="水着・マリンウェア">
+            <span class="category-name">水着・マリンウェア</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Socks.png" alt="靴下・フットウェア">
+            <span class="category-name">靴下・フットウェア</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Yukata.png" alt="浴衣・下駄">
+            <span class="category-name">浴衣・下駄</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Shoes.png" alt="シューズ">
+            <span class="category-name">シューズ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Bags.png" alt="バッグ">
+            <span class="category-name">バッグ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Wallets.png" alt="財布・ケース・小物">
+            <span class="category-name">財布・ケース・小物</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Fashion Accessories.png" alt="ファッション雑貨">
+            <span class="category-name">ファッション雑貨</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Accessories.png" alt="アクセサリー">
+            <span class="category-name">アクセサリー</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Watches.png" alt="腕時計">
+            <span class="category-name">腕時計</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Lucky Bag.png" alt="福袋">
+            <span class="category-name">福袋</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Sports.png" alt="スポーツ・アウトドア">
+            <span class="category-name">スポーツ・アウトドア</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Interior.png" alt="インテリア">
+            <span class="category-name">インテリア</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Tableware.png" alt="食器・キッチン">
+            <span class="category-name">食器・キッチン</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Stationery.png" alt="文具・ホビー・各種用品">
+            <span class="category-name">文具・ホビー・各種用品</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+        <a href="#">
+          <li>
+            <img src="img/Pet Supplies.png" alt="ペットグッズ">
+            <span class="category-name">ペットグッズ</span>
+            <span class="arrow">＞</span>
+          </li>
+        </a>
+      </ul>
+    </aside>
+    <main class="main-content">
+      <section class="new-arrival">
+      <h2>NEW ARRIVAL<br><span>新作アイテム</span></h2>
+      <div class="product-list">
+        <!-- 商品カード ×10 -->
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image">
+            <img src="sample.jpg" alt="商品画像">
+            <div class="label discount">30%OFF</div>
+            <div class="label point">+P 15%</div>
+          </div>
+          <div class="brand">ROCK SPRING</div>
+          <div class="name">カジュアルワークシューズ〜</div>
+          <div class="price">￥4,235</div>
+        </div>
+
+      </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
