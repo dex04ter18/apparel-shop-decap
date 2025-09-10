@@ -13,14 +13,37 @@ collections:
         label: "Products JSON"
         name: "products_json"
         fields:
-          - { name: "items", label: "Products", widget: "list", summary: "{{fields.title}}", fields:
-              - { name: "id", label: "ID", widget: "string" }
-              - { name: "title", label: "Title", widget: "string" }
-              - { name: "price", label: "Price", widget: "number" }
-              - { name: "category", label: "Category", widget: "string" }
-              - { name: "tags", label: "Tags", widget: "list" }
-              - { name: "sizes", label: "Sizes", widget: "list" }
-              - { name: "image", label: "Image", widget: "image" }
-              - { name: "description", label: "Description", widget: "text" }
-              - { name: "published", label: "Published", widget: "boolean", default: true }
-            ]
+          - name: "items"
+            label: "Products"
+            widget: "list"
+            summary: "{{fields.title}}"
+            fields:
+              - name: "id"
+                label: "ID"
+                widget: "string"
+              - name: "title"
+                label: "Title"
+                widget: "string"
+              - name: "price"
+                label: "Price"
+                widget: "number"
+              - name: "category"
+                label: "Category"
+                widget: "string"
+              - name: "tags"
+                label: "Tags"
+                widget: "list"
+              - name: "sizes"
+                label: "Sizes"
+                widget: "list"
+              - name: "image"
+                label: "Image"
+                widget: "image"
+              - name: "description"
+                label: "Description"
+                widget: "text"
+              - name: "published"
+                label: "Published"
+                widget: "boolean"
+                default: true
+
