@@ -1,29 +1,26 @@
 backend:
   name: git-gateway
-  branch: main   # Gitのブランチ名
+  branch: main
 
-media_folder: "uploads"     # 画像ファイルの保存先（リポジトリ内）
-public_folder: "/uploads"   # サイトから参照するときのパス
-
-publish_mode: editorial_workflow  # 下書き→レビュー→公開（簡単にしたければ削除でもOK）
-locale: "ja"
+media_folder: "uploads"      # CMS 上でアップロードした画像の保存先（リポジトリ内）
+public_folder: "/uploads"    # サイト上で画像にアクセスするパス
 
 collections:
-  - name: "products"             # コレクションID
-    label: "商品"                # 管理画面での表示名
-    folder: "content/products"   # 生成ファイルの保存先
-    create: true                 # 管理画面から新規作成を許可
-    slug: "{{fields.id}}-{{slug}}"  # ファイル名ルール
-    fields:
-      - { label: "商品ID", name: "id", widget: "string", hint: "半角英数ユニーク" }
-      - { label: "商品名", name: "name", widget: "string" }
-      - { label: "ブランド", name: "brand", widget: "string", required: false }
-      - { label: "価格", name: "price", widget: "number", value_type: "float", min: 0 }
-      - { label: "カテゴリ", name: "category", widget: "string" }
-      - { label: "タグ", name: "tags", widget: "list", required: false }
-      - { label: "カラー", name: "colors", widget: "list", required: false }
-      - { label: "サイズ", name: "sizes", widget: "list", required: false }
-      - { label: "画像", name: "images", widget: "list", field: { label: "画像", name: "image", widget: "image" } }
-      - { label: "説明", name: "description", widget: "text", required: false }
-      - { label: "公開日", name: "created_at", widget: "datetime", format: "YYYY-MM-DDTHH:mm:ssZ" }
-      - { label: "下書き", name: "draft", widget: "boolean", default: false, required: false }
+  - name: "products"
+    label: "Products (single file)"
+    files:
+      - file: "products/products.json"
+        label: "Products JSON"
+        name: "products_json"
+        fields:
+          - { name: "items", label: "Products", widget: "list", summary: "{{fields.title}}", fields:
+              - { name: "id", label: "ID", widget: "string" }
+              - { name: "title", label: "Title", widget: "string" }
+              - { name: "price", label: "Price", widget: "number" }
+              - { name: "category", label: "Category", widget: "string" }
+              - { name: "tags", label: "Tags", widget: "list" }
+              - { name: "sizes", label: "Sizes", widget: "list" }
+              - { name: "image", label: "Image", widget: "image" }
+              - { name: "description", label: "Description", widget: "text" }
+              - { name: "published", label: "Published", widget: "boolean", default: true }
+            ]

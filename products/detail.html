@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"/>
+  <title>商品詳細</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <main id="main">
+    <p>読み込み中…</p>
+  </main>
+
+  <script>
+    function getQueryParam(name) {
+      const url = new URL(location.href);
+      return url.searchParams.get(name);
+    }
+
+    async function loadDetail() {
+      const id = getQueryParam('id');
+      const main = document.getElementById('main');
+      if (!id) { main.innerHTML = '<p>商品IDが指定されていません。</p>'; return; }
+      try {
+        const res = await fetch('/products/products.json', {cache: "no-store"});
+        const json = await res.json();
+        const item = (json.items || []).find(it => it.id === id);
+        if (!item) { main.innerHTML = '<p>商品が見つかりませんでした。</p>'; return; }
+        main.innerHTML = `
+          <article>
+            <h1>${item.title}</h1>
+            <img src="${item.image || '/assets/placeholder.png'}" alt="${item.title}" style="max-width:400px;width:100%;height:auto;">
+            <p class="price">¥${item.price ? item.price.toLocaleString() : ''}</p>
+            <p>${item.description || ''}</p>
+            <p>カテゴリ: ${item.category || '-'}</p>
+            <p>サイズ: ${(item.sizes||[]).join(' / ')}</p>
+          </article>
+        `;
+      } catch (e) {
+        main.innerHTML = '<p>読み込みに失敗しました。</p>';
+        console.error(e);
+      }
+    }
+
+    loadDetail();
+  </script>
+</body>
+</html>

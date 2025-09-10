@@ -1,0 +1,15 @@
+{
+  "items": [
+    {
+      "id": "tops-001",
+      "title": "シンプルコットンTシャツ",
+      "price": 1980,
+      "category": "トップス",
+      "tags": ["カジュアル","夏"],
+      "sizes": ["S","M","L"],
+      "image": "/uploads/tops-001.png",
+      "description": "柔らかいコットン素材のベーシックTシャツ。デイリーに使える。",
+      "published": true
+    }
+  ]
+}

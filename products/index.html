@@ -1,12 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Apparel Shop</title>
-  <link rel="stylesheet" href="../assets/style.css">
+  <meta charset="utf-8" />
+  <title>Apparel Shop - 商品一覧</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    /* シンプルなリスト用の最低限のスタイル */
+    .grid { display:flex; flex-wrap:wrap; gap:16px; }
+    .card { width:220px; border:1px solid #eee; padding:8px; border-radius:6px; text-align:center; }
+    .card img { width:100%; height:180px; object-fit:cover; background:#f6f6f6; }
+    .card h3 { font-size:16px; margin:8px 0 4px; }
+    .card p.price { color:#c0392b; font-weight:700; margin:6px 0; }
+    .no-items { color:#666; }
+  </style>
 </head>
 <body>
-  <h1>商品一覧ページ</h1>
-  <p>ここに商品が並びます</p>
+  <header>
+    <h1>商品一覧ページ</h1>
+  </header>
+
+  <main>
+    <div id="productsContainer" class="grid"></div>
+    <p id="noItems" class="no-items" style="display:none;">現在、公開されている商品はありません。</p>
+  </main>
+
+  <script>
+    async function loadProducts() {
+      try {
+        const res = await fetch('/products/products.json', {cache: "no-store"});
+        if (!res.ok) throw new Error('読み込み失敗');
+        const data = await res.json();
+        const items = (data.items || []).filter(i => i.published !== false);
+        const container = document.getElementById('productsContainer');
+        const noItems = document.getElementById('noItems');
+        if (items.length === 0) {
+          noItems.style.display = 'block';
+          return;
+        }
+        items.forEach(item => {
+          const a = document.createElement('a');
+          a.href = `detail.html?id=${encodeURIComponent(item.id)}`;
+          a.className = 'card';
+          const img = document.createElement('img');
+          img.src = item.image || '/assets/placeholder.png';
+          img.alt = item.title || '商品画像';
+          const h3 = document.createElement('h3');
+          h3.textContent = item.title || '無題';
+          const price = document.createElement('p');
+          price.className = 'price';
+          price.textContent = item.price ? '¥' + item.price.toLocaleString() : '';
+          a.appendChild(img);
+          a.appendChild(h3);
+          a.appendChild(price);
+          container.appendChild(a);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('noItems').textContent = '商品一覧の読み込みに失敗しました';
+        document.getElementById('noItems').style.display = 'block';
+      }
+    }
+    loadProducts();
+  </script>
 </body>
 </html>
