@@ -46,4 +46,7 @@ collections:
                 label: "Published"
                 widget: "boolean"
                 default: true
-
+              - name: "created_at"
+                label: "公開日"
+                widget: "datetime"
+                format: "YYYY-MM-DDTHH:mm:ssZ"
