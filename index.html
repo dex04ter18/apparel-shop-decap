@@ -23,6 +23,13 @@
       <p>このサイトでは商品情報を管理画面から追加し、ここで公開できます。</p>
       <p>まずは <strong>商品を1件追加</strong> してみましょう！</p>
     </section>
+
+    <!-- ▼ 新着商品エリア -->
+    <section id="new-arrivals">
+      <h2>New Arrival</h2>
+      <div id="newGrid" class="grid"></div>
+    </section>
+    <!-- ▲ 新着商品エリア -->
   </main>
 
   <footer>
@@ -38,5 +45,39 @@
       });
     }
   </script>
+
+  <!-- 新着商品スクリプト -->
+  <script>
+  (async function(){
+    try {
+      const res = await fetch('/products/products.json', {cache: 'no-store'});
+      if(!res.ok) return;
+      const data = await res.json();
+      const items = (data.items||[]).filter(i => i.published !== false);
+      // 先頭4件を新着として表示
+      const list = items.slice(0,4);
+      const grid = document.getElementById('newGrid');
+      grid.innerHTML = list.map(it => `
+        <a class="card" href="/products/detail.html?id=${encodeURIComponent(it.id)}">
+          <img src="${it.image || '/assets/placeholder.png'}" alt="${it.title || ''}">
+          <h3>${it.title || 'タイトルなし'}</h3>
+          <p class="price">${it.price ? '¥' + it.price.toLocaleString() : ''}</p>
+        </a>
+      `).join('');
+    } catch(e) {
+      console.error(e);
+    }
+  })();
+  </script>
+
+  <style>
+  /* 新着商品の簡単なレイアウト */
+  #new-arrivals .grid { display:flex; gap:12px; flex-wrap:wrap; margin-top: 1rem; }
+  #new-arrivals .card { width:220px; border:1px solid #eee; padding:8px; text-align:center; border-radius:6px; background:#fff; }
+  #new-arrivals .card img { width:100%; height:180px; object-fit:cover; border-radius:4px; }
+  #new-arrivals h3 { font-size:1rem; margin:0.5rem 0; }
+  #new-arrivals .price { color:#333; font-weight:bold; }
+  </style>
 </body>
 </html>
+
