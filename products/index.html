@@ -24,12 +24,21 @@
 
   <main>
     <!-- ▼ 検索・カテゴリフィルタ -->
-    <div class="filters">
-      <input type="text" id="searchInput" placeholder="商品名で検索" />
-      <select id="categorySelect">
-        <option value="">すべてのカテゴリ</option>
-      </select>
-    </div>
+<div class="filters">
+  <input type="text" id="searchInput" placeholder="商品名で検索" />
+  <select id="categorySelect">
+    <option value="">すべてのカテゴリ</option>
+  </select>
+
+  <!-- 並び替えセレクト（ここを追加） -->
+  <select id="sortSelect" aria-label="並び替え">
+    <option value="newest">新着順（新しい順）</option>
+    <option value="oldest">古い順</option>
+    <option value="price-asc">価格が安い順</option>
+    <option value="price-desc">価格が高い順</option>
+  </select>
+</div>
+
     <!-- ▲ 検索・カテゴリフィルタ -->
 
     <div id="productsContainer" class="grid"></div>
@@ -37,78 +46,134 @@
   </main>
 
   <script>
-    let allItems = [];
+  let allItems = [];
 
-    async function loadProducts() {
-      try {
-        const res = await fetch('/products/products.json', {cache: "no-store"});
-        if (!res.ok) throw new Error('読み込み失敗');
-        const data = await res.json();
-        allItems = (data.items || []).filter(i => i.published !== false);
+  function getQueryParam(name) {
+    const url = new URL(location.href);
+    return url.searchParams.get(name);
+  }
 
-        // カテゴリ一覧を生成
-        const categories = [...new Set(allItems.map(i => i.category).filter(Boolean))];
-        const select = document.getElementById('categorySelect');
-        categories.forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          select.appendChild(opt);
-        });
+  // 日付文字列を比較しやすい数値（タイムスタンプ）に変換
+  function toTime(v) {
+    if (!v) return 0;
+    const t = Date.parse(v);
+    return isNaN(t) ? 0 : t;
+  }
 
-        renderProducts(allItems);
-      } catch (err) {
-        console.error(err);
-        document.getElementById('noItems').textContent = '商品一覧の読み込みに失敗しました';
-        document.getElementById('noItems').style.display = 'block';
-      }
-    }
+  async function loadProducts() {
+    try {
+      const res = await fetch('/products/products.json', {cache: "no-store"});
+      if (!res.ok) throw new Error('読み込み失敗');
+      const data = await res.json();
+      allItems = (data.items || []).filter(i => i.published !== false);
 
-    function renderProducts(items) {
-      const container = document.getElementById('productsContainer');
-      const noItems = document.getElementById('noItems');
-      container.innerHTML = "";
-      if (items.length === 0) {
-        noItems.style.display = 'block';
-        return;
-      }
-      noItems.style.display = 'none';
-      items.forEach(item => {
-        const a = document.createElement('a');
-        a.href = `detail.html?id=${encodeURIComponent(item.id)}`;
-        a.className = 'card';
-        const img = document.createElement('img');
-        img.src = item.image || '/assets/placeholder.png';
-        img.alt = item.title || '商品画像';
-        const h3 = document.createElement('h3');
-        h3.textContent = item.title || '無題';
-        const price = document.createElement('p');
-        price.className = 'price';
-        price.textContent = item.price ? '¥' + item.price.toLocaleString() : '';
-        a.appendChild(img);
-        a.appendChild(h3);
-        a.appendChild(price);
-        container.appendChild(a);
+      // created_at を持つアイテムは Date.parse で扱えるようにしておく（フォールバックは0）
+      allItems.forEach(it => { it._ts = toTime(it.created_at); });
+
+      // カテゴリ一覧を生成
+      const categories = [...new Set(allItems.map(i => i.category).filter(Boolean))];
+      const select = document.getElementById('categorySelect');
+      // 既にoptionがある（「すべて」）場合は上書きしないように
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
       });
+
+      // URLパラメータにcategoryがあれば選択してフィルタ適用
+      const catParam = getQueryParam('category');
+      if (catParam) {
+        select.value = catParam;
+      }
+
+      // URLパラメータにsortがあれば選択
+      const sortParam = getQueryParam('sort');
+      const sortSelect = document.getElementById('sortSelect');
+      if (sortParam && sortSelect) sortSelect.value = sortParam;
+
+      renderProducts(allItems);
+      applyFilters(); // 初回適用（検索/カテゴリ/ソート）
+    } catch (err) {
+      console.error(err);
+      document.getElementById('noItems').textContent = '商品一覧の読み込みに失敗しました';
+      document.getElementById('noItems').style.display = 'block';
     }
+  }
 
-    function applyFilters() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const category = document.getElementById('categorySelect').value;
-      const filtered = allItems.filter(item => {
-        const matchSearch = item.title?.toLowerCase().includes(search);
-        const matchCat = !category || item.category === category;
-        return matchSearch && matchCat;
-      });
-      renderProducts(filtered);
+  function sortItems(items, mode) {
+    // mode: newest | oldest | price-asc | price-desc
+    const copy = [...items];
+    if (mode === 'newest') {
+      return copy.sort((a,b) => (b._ts || 0) - (a._ts || 0));
     }
+    if (mode === 'oldest') {
+      return copy.sort((a,b) => (a._ts || 0) - (b._ts || 0));
+    }
+    if (mode === 'price-asc') {
+      return copy.sort((a,b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    }
+    if (mode === 'price-desc') {
+      return copy.sort((a,b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    }
+    return copy;
+  }
 
-    // イベントリスナー設定
-    document.getElementById('searchInput').addEventListener('input', applyFilters);
-    document.getElementById('categorySelect').addEventListener('change', applyFilters);
+  function renderProducts(items) {
+    const container = document.getElementById('productsContainer');
+    const noItems = document.getElementById('noItems');
+    container.innerHTML = "";
+    if (items.length === 0) {
+      noItems.style.display = 'block';
+      return;
+    }
+    noItems.style.display = 'none';
+    items.forEach(item => {
+      const a = document.createElement('a');
+      a.href = `detail.html?id=${encodeURIComponent(item.id)}`;
+      a.className = 'card';
+      const img = document.createElement('img');
+      img.src = item.image || '/assets/placeholder.png';
+      img.alt = item.title || '商品画像';
+      const h3 = document.createElement('h3');
+      h3.textContent = item.title || '無題';
+      const price = document.createElement('p');
+      price.className = 'price';
+      price.textContent = item.price ? '¥' + Number(item.price).toLocaleString() : '';
+      a.appendChild(img);
+      a.appendChild(h3);
+      a.appendChild(price);
+      container.appendChild(a);
+    });
+  }
 
-    loadProducts();
-  </script>
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categorySelect').value;
+    const sortMode = document.getElementById('sortSelect') ? document.getElementById('sortSelect').value : 'newest';
+
+    let filtered = allItems.filter(item => {
+      const matchSearch = !search || (item.title || '').toLowerCase().includes(search) || (item.tags || []).join(' ').toLowerCase().includes(search);
+      const matchCat = !category || item.category === category;
+      return matchSearch && matchCat;
+    });
+
+    // ソートを適用
+    filtered = sortItems(filtered, sortMode);
+
+    renderProducts(filtered);
+  }
+
+  // イベントリスナー設定（既存のsearch & categoryに加えてsortを監視）
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('categorySelect').addEventListener('change', applyFilters);
+  // sortSelect は下でDOMに入れる想定（もし未存在でも問題ない）
+  const sortEl = document.getElementById('sortSelect');
+  if (sortEl) sortEl.addEventListener('change', applyFilters);
+
+  loadProducts();
+</script>
+
 </body>
 </html>
 
