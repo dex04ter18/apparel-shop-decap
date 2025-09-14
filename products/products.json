@@ -57,6 +57,138 @@
       "image": "/uploads/00036-22.png",
       "description": "定番の細身ジーンズ。ストレッチ入りで履き心地抜群。",
       "category": "ボトムス"
+    },
+    {
+      "price": 6980,
+      "created_at": "2025-09-14T11:20:00+09:00",
+      "published": true,
+      "sizes": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "title": "デニムジャケット",
+      "tags": [
+        "春",
+        "カジュアル"
+      ],
+      "id": "outer-001",
+      "image": "/uploads/00001-23.png",
+      "description": "長年愛される定番デニムジャケット。羽織るだけでスタイルが決まる。",
+      "category": "アウター"
+    },
+    {
+      "price": 12980,
+      "created_at": "2025-09-14T11:22:00+09:00",
+      "published": true,
+      "sizes": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "title": "ダウンジャケット",
+      "tags": [
+        "冬",
+        "防寒"
+      ],
+      "id": "outer-002",
+      "image": "/uploads/00003-24.png",
+      "description": "軽量で暖かいダウンジャケット。寒い日のお出かけに最適。",
+      "category": "アウター"
+    },
+    {
+      "price": 4980,
+      "created_at": "2025-09-14T11:26:00+09:00",
+      "published": true,
+      "sizes": [
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28"
+      ],
+      "title": "スニーカー",
+      "tags": [
+        "カジュアル",
+        "ユニセックス"
+      ],
+      "id": "shoes-001",
+      "image": "/uploads/スクリーンショット-2025-09-14-112529.png",
+      "description": "シンプルなデザインの白スニーカー。どんなコーデにも合わせやすい。",
+      "category": "シューズ"
+    },
+    {
+      "price": 9980,
+      "created_at": "2025-09-14T11:27:00+09:00",
+      "published": true,
+      "sizes": [
+        "25",
+        "26",
+        "27",
+        "28"
+      ],
+      "title": "レザーブーツ",
+      "tags": [
+        "秋",
+        "冬",
+        "カジュアル"
+      ],
+      "id": "shoes-002",
+      "image": "/uploads/00007-55.png",
+      "description": "本革風のレザーブーツ。履き込むほどに味が出る一足。",
+      "category": "シューズ"
+    },
+    {
+      "price": 2980,
+      "created_at": "2025-09-14T11:29:00+09:00",
+      "published": true,
+      "sizes": [
+        "Free"
+      ],
+      "title": "キャンバス トートバッグ",
+      "tags": [
+        "通学",
+        "買い物"
+      ],
+      "id": "bag-001",
+      "image": "/uploads/00007-59.png",
+      "description": "丈夫なキャンバス生地のトートバッグ。普段使いに便利。",
+      "category": "バッグ"
+    },
+    {
+      "price": 6980,
+      "created_at": "2025-09-14T11:31:00+09:00",
+      "published": true,
+      "sizes": [
+        "Free"
+      ],
+      "title": "レザークラッチバッグ",
+      "tags": [
+        "フォーマル",
+        "おしゃれ"
+      ],
+      "id": "bag-002",
+      "image": "/uploads/00013-65.png",
+      "description": "コンパクトながら収納力抜群。大人の雰囲気漂うクラッチバッグ。",
+      "category": "バッグ"
+    },
+    {
+      "price": 3980,
+      "created_at": "2025-09-14T11:32:00+09:00",
+      "published": true,
+      "sizes": [
+        "Free"
+      ],
+      "title": "シルバーネックレス",
+      "tags": [
+        "ユニセックス",
+        "ギフト"
+      ],
+      "id": "acc-001",
+      "image": "/uploads/00013-66.png",
+      "description": "シンプルなデザインで男女問わず使えるシルバーネックレス。",
+      "category": "アクセサリー"
     }
   ]
 }
