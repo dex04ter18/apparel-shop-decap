@@ -15,30 +15,41 @@
     .no-items { color:#666; margin-top:1rem; }
     .filters { margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
     .filters input, .filters select { padding: 6px; font-size: 14px; }
+
+    /* カテゴリナビ */
+    .category-nav { margin: 8px 0; font-size:14px; }
+    .category-nav a { margin-right:8px; text-decoration:none; color:#1a73e8; }
+    .category-nav a:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
   <header>
     <h1>商品一覧ページ</h1>
+
+    <!-- ▼ カテゴリナビ -->
+    <nav id="categoryNav" class="category-nav" aria-label="カテゴリ">
+      <span>カテゴリ：</span>
+      <span id="categoryLinks">読み込み中…</span>
+    </nav>
+    <!-- ▲ カテゴリナビ -->
   </header>
 
   <main>
     <!-- ▼ 検索・カテゴリフィルタ -->
-<div class="filters">
-  <input type="text" id="searchInput" placeholder="商品名で検索" />
-  <select id="categorySelect">
-    <option value="">すべてのカテゴリ</option>
-  </select>
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="商品名で検索" />
+      <select id="categorySelect">
+        <option value="">すべてのカテゴリ</option>
+      </select>
 
-  <!-- 並び替えセレクト（ここを追加） -->
-  <select id="sortSelect" aria-label="並び替え">
-    <option value="newest">新着順（新しい順）</option>
-    <option value="oldest">古い順</option>
-    <option value="price-asc">価格が安い順</option>
-    <option value="price-desc">価格が高い順</option>
-  </select>
-</div>
-
+      <!-- 並び替えセレクト -->
+      <select id="sortSelect" aria-label="並び替え">
+        <option value="newest">新着順（新しい順）</option>
+        <option value="oldest">古い順</option>
+        <option value="price-asc">価格が安い順</option>
+        <option value="price-desc">価格が高い順</option>
+      </select>
+    </div>
     <!-- ▲ 検索・カテゴリフィルタ -->
 
     <div id="productsContainer" class="grid"></div>
@@ -53,7 +64,6 @@
     return url.searchParams.get(name);
   }
 
-  // 日付文字列を比較しやすい数値（タイムスタンプ）に変換
   function toTime(v) {
     if (!v) return 0;
     const t = Date.parse(v);
@@ -67,13 +77,11 @@
       const data = await res.json();
       allItems = (data.items || []).filter(i => i.published !== false);
 
-      // created_at を持つアイテムは Date.parse で扱えるようにしておく（フォールバックは0）
       allItems.forEach(it => { it._ts = toTime(it.created_at); });
 
-      // カテゴリ一覧を生成
+      // カテゴリ一覧を生成（フィルタ用 select）
       const categories = [...new Set(allItems.map(i => i.category).filter(Boolean))];
       const select = document.getElementById('categorySelect');
-      // 既にoptionがある（「すべて」）場合は上書きしないように
       categories.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
@@ -93,7 +101,7 @@
       if (sortParam && sortSelect) sortSelect.value = sortParam;
 
       renderProducts(allItems);
-      applyFilters(); // 初回適用（検索/カテゴリ/ソート）
+      applyFilters();
     } catch (err) {
       console.error(err);
       document.getElementById('noItems').textContent = '商品一覧の読み込みに失敗しました';
@@ -102,20 +110,11 @@
   }
 
   function sortItems(items, mode) {
-    // mode: newest | oldest | price-asc | price-desc
     const copy = [...items];
-    if (mode === 'newest') {
-      return copy.sort((a,b) => (b._ts || 0) - (a._ts || 0));
-    }
-    if (mode === 'oldest') {
-      return copy.sort((a,b) => (a._ts || 0) - (b._ts || 0));
-    }
-    if (mode === 'price-asc') {
-      return copy.sort((a,b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-    }
-    if (mode === 'price-desc') {
-      return copy.sort((a,b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-    }
+    if (mode === 'newest') return copy.sort((a,b) => (b._ts || 0) - (a._ts || 0));
+    if (mode === 'oldest') return copy.sort((a,b) => (a._ts || 0) - (b._ts || 0));
+    if (mode === 'price-asc') return copy.sort((a,b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    if (mode === 'price-desc') return copy.sort((a,b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     return copy;
   }
 
@@ -158,22 +157,45 @@
       return matchSearch && matchCat;
     });
 
-    // ソートを適用
     filtered = sortItems(filtered, sortMode);
 
     renderProducts(filtered);
   }
 
-  // イベントリスナー設定（既存のsearch & categoryに加えてsortを監視）
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('categorySelect').addEventListener('change', applyFilters);
-  // sortSelect は下でDOMに入れる想定（もし未存在でも問題ない）
   const sortEl = document.getElementById('sortSelect');
   if (sortEl) sortEl.addEventListener('change', applyFilters);
 
   loadProducts();
-</script>
+
+  // ▼ カテゴリナビ（トップページと同じ仕組み）
+  (async function(){
+    try {
+      const res = await fetch('/products/products.json', {cache: 'no-store'});
+      if (!res.ok) { document.getElementById('categoryLinks').textContent = '読み込み失敗'; return; }
+      const data = await res.json();
+      const items = (data.items || []).filter(i => i.published !== false);
+      const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
+      const container = document.getElementById('categoryLinks');
+      container.innerHTML = '';
+      const all = document.createElement('a');
+      all.href = '/products/';
+      all.textContent = 'すべて';
+      container.appendChild(all);
+      cats.forEach(c => {
+        const a = document.createElement('a');
+        a.href = `/products/?category=${encodeURIComponent(c)}`;
+        a.textContent = c;
+        container.appendChild(a);
+      });
+    } catch (e) {
+      console.error('カテゴリ読み込みエラー', e);
+      document.getElementById('categoryLinks').textContent = 'カテゴリ取得エラー';
+    }
+  })();
+  // ▲ カテゴリナビ
+  </script>
 
 </body>
 </html>
-
