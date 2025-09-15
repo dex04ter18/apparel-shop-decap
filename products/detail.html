@@ -13,6 +13,7 @@
     .sizes select { padding:6px; }
     .related { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
     .related .card { width:160px; border:1px solid #eee; padding:8px; border-radius:6px; text-align:center; }
+    #backBtn { background:transparent; border:none; color:#1a73e8; cursor:pointer; padding:6px 0; }
   </style>
 </head>
 <body>
@@ -26,17 +27,34 @@
       return url.searchParams.get(name);
     }
 
+    // 現在の一覧クエリ（?category=...&sort=... など）を取得しておく
+    const currentListQuery = (function(){
+      // 参照元のクエリを優先的に保持させるため、まず location.search を使う
+      // 例: /products/detail.html?id=tops-001&category=トップス などで飛んできた場合に有効
+      // ただし location.search に id=... が含まれることがあるので、id を取り除いたクエリを作る
+      const url = new URL(location.href);
+      url.searchParams.delete('id');
+      const qs = url.searchParams.toString();
+      return qs ? '?' + qs : '';
+    })();
+
     function fallbackBack() {
-      // 履歴があるなら戻る、なければ一覧へ（カテゴリパラメータを保持する試み）
+      // 履歴があるなら戻る（一覧からの遷移を想定）
       if (document.referrer && document.referrer.includes('/products')) {
         history.back();
+        return;
+      }
+      // 履歴がない／直接開いた場合は、一覧ページへ（クエリ保持）
+      if (currentListQuery) {
+        location.href = '/products/' + currentListQuery;
       } else {
         location.href = '/products/';
       }
     }
 
     async function loadDetail() {
-      const id = getQueryParam('id');
+      const url = new URL(location.href);
+      const id = url.searchParams.get('id');
       const main = document.getElementById('main');
       if (!id) { main.innerHTML = '<p>商品IDが指定されていません。</p>'; return; }
       try {
@@ -51,18 +69,18 @@
         main.innerHTML = `
           <div class="detail">
             <div class="media">
-              <img src="${item.image || '/assets/placeholder.png'}" alt="${item.title}">
+              <img src="${item.image || '/assets/placeholder.png'}" alt="${escapeHtml(item.title || '')}">
             </div>
             <div class="info">
               <button id="backBtn">← 一覧へ戻る</button>
-              <h1>${item.title}</h1>
+              <h1>${escapeHtml(item.title || '')}</h1>
               <p class="price">¥${item.price ? Number(item.price).toLocaleString() : ''}</p>
-              <p>${item.description || ''}</p>
+              <p>${escapeHtml(item.description || '')}</p>
 
               <div class="sizes">
                 <label for="sizeSelect">サイズ：</label>
                 <select id="sizeSelect">
-                  ${ (item.sizes || []).map(s => `<option value="${s}">${s}</option>`).join('') || '<option value="">Free</option>'}
+                  ${ (item.sizes || []).map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('') || '<option value="">Free</option>'}
                 </select>
               </div>
 
@@ -82,20 +100,24 @@
         `;
 
         // 戻るボタン
-        document.getElementById('backBtn').addEventListener('click', () => fallbackBack());
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) backBtn.addEventListener('click', () => fallbackBack());
 
         // add to cart(仮)
-        document.getElementById('addToCart').addEventListener('click', () => {
-          const size = document.getElementById('sizeSelect').value || null;
-          // 実際のカート機能がなければ localStorage に仮保管しておく
+        const addBtn = document.getElementById('addToCart');
+        if (addBtn) addBtn.addEventListener('click', () => {
+          const size = document.getElementById('sizeSelect') ? document.getElementById('sizeSelect').value : null;
+          // 仮カートは localStorage へ保存（既存の cart を上書きする方式ではなく push）
           const cart = JSON.parse(localStorage.getItem('simple_cart') || '[]');
-          cart.push({ id: item.id, title: item.title, price: item.price, size, qty: 1 });
+          cart.push({ id: item.id, title: item.title, price: item.price, size, qty: 1, ts: Date.now() });
           localStorage.setItem('simple_cart', JSON.stringify(cart));
-          document.getElementById('msg').textContent = 'カートに追加しました（仮）';
+          const msg = document.getElementById('msg');
+          if (msg) msg.textContent = 'カートに追加しました（仮）';
         });
 
         // ログインボタン（Netlify Identity 呼び出し）
-        document.getElementById('loginBtn').addEventListener('click', () => {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) loginBtn.addEventListener('click', () => {
           if (window.netlifyIdentity) {
             window.netlifyIdentity.open();
           } else {
@@ -106,14 +128,23 @@
         // 関連商品：同カテゴリから3件（自分は除外）
         const related = items.filter(it => it.category === item.category && it.id !== item.id && it.published !== false).slice(0,3);
         const relatedList = document.getElementById('relatedList');
-        if (related.length === 0) relatedList.innerHTML = '<p>関連商品はありません。</p>';
-        else relatedList.innerHTML = related.map(r => `
-          <a class="card" href="detail.html?id=${encodeURIComponent(r.id)}">
-            <img src="${r.image || '/assets/placeholder.png'}" alt="${r.title}" style="width:100%;height:80px;object-fit:cover;border-radius:4px">
-            <div>${r.title}</div>
-            <div style="color:#c0392b">¥${r.price ? Number(r.price).toLocaleString() : ''}</div>
-          </a>
-        `).join('');
+        if (!relatedList) return;
+        if (related.length === 0) {
+          relatedList.innerHTML = '<p>関連商品はありません。</p>';
+        } else {
+          // 各関連リンクに現在の一覧クエリを付与しておく（戻るをスムーズにするため）
+          relatedList.innerHTML = related.map(r => {
+            const qs = currentListQuery || '';
+            const href = `detail.html?id=${encodeURIComponent(r.id)}${qs}`;
+            return `
+              <a class="card" href="${href}">
+                <img src="${r.image || '/assets/placeholder.png'}" alt="${escapeHtml(r.title || '')}" style="width:100%;height:80px;object-fit:cover;border-radius:4px">
+                <div>${escapeHtml(r.title || '')}</div>
+                <div style="color:#c0392b">¥${r.price ? Number(r.price).toLocaleString() : ''}</div>
+              </a>
+            `;
+          }).join('');
+        }
 
       } catch (e) {
         main.innerHTML = '<p>読み込みに失敗しました。</p>';
@@ -121,7 +152,18 @@
       }
     }
 
+    // 簡単なHTMLエスケープ（表示用）
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     loadDetail();
   </script>
 </body>
 </html>
+
