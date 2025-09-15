@@ -5,6 +5,15 @@
   <title>商品詳細</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .detail { max-width:900px; margin:20px auto; display:flex; gap:20px; flex-wrap:wrap; }
+    .detail img { width: 100%; max-width:420px; object-fit:contain; border-radius:6px; background:#fff; }
+    .info { flex:1; min-width:260px; }
+    .price { color:#c0392b; font-weight:700; font-size:1.2rem; margin:8px 0; }
+    .sizes select { padding:6px; }
+    .related { display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+    .related .card { width:160px; border:1px solid #eee; padding:8px; border-radius:6px; text-align:center; }
+  </style>
 </head>
 <body>
   <main id="main">
@@ -17,25 +26,95 @@
       return url.searchParams.get(name);
     }
 
+    function fallbackBack() {
+      // 履歴があるなら戻る、なければ一覧へ（カテゴリパラメータを保持する試み）
+      if (document.referrer && document.referrer.includes('/products')) {
+        history.back();
+      } else {
+        location.href = '/products/';
+      }
+    }
+
     async function loadDetail() {
       const id = getQueryParam('id');
       const main = document.getElementById('main');
       if (!id) { main.innerHTML = '<p>商品IDが指定されていません。</p>'; return; }
       try {
         const res = await fetch('/products/products.json', {cache: "no-store"});
+        if (!res.ok) throw new Error('読み込み失敗');
         const json = await res.json();
-        const item = (json.items || []).find(it => it.id === id);
+        const items = json.items || [];
+        const item = items.find(it => it.id === id);
         if (!item) { main.innerHTML = '<p>商品が見つかりませんでした。</p>'; return; }
+
+        // レンダリング
         main.innerHTML = `
-          <article>
-            <h1>${item.title}</h1>
-            <img src="${item.image || '/assets/placeholder.png'}" alt="${item.title}" style="max-width:400px;width:100%;height:auto;">
-            <p class="price">¥${item.price ? item.price.toLocaleString() : ''}</p>
-            <p>${item.description || ''}</p>
-            <p>カテゴリ: ${item.category || '-'}</p>
-            <p>サイズ: ${(item.sizes||[]).join(' / ')}</p>
-          </article>
+          <div class="detail">
+            <div class="media">
+              <img src="${item.image || '/assets/placeholder.png'}" alt="${item.title}">
+            </div>
+            <div class="info">
+              <button id="backBtn">← 一覧へ戻る</button>
+              <h1>${item.title}</h1>
+              <p class="price">¥${item.price ? Number(item.price).toLocaleString() : ''}</p>
+              <p>${item.description || ''}</p>
+
+              <div class="sizes">
+                <label for="sizeSelect">サイズ：</label>
+                <select id="sizeSelect">
+                  ${ (item.sizes || []).map(s => `<option value="${s}">${s}</option>`).join('') || '<option value="">Free</option>'}
+                </select>
+              </div>
+
+              <div style="margin-top:12px;">
+                <button id="addToCart">カートに追加（仮）</button>
+                <button id="loginBtn">ログインして購入</button>
+              </div>
+
+              <div id="msg" style="margin-top:8px;color:green;"></div>
+
+              <div class="related-block">
+                <h3>関連商品</h3>
+                <div id="relatedList" class="related"></div>
+              </div>
+            </div>
+          </div>
         `;
+
+        // 戻るボタン
+        document.getElementById('backBtn').addEventListener('click', () => fallbackBack());
+
+        // add to cart(仮)
+        document.getElementById('addToCart').addEventListener('click', () => {
+          const size = document.getElementById('sizeSelect').value || null;
+          // 実際のカート機能がなければ localStorage に仮保管しておく
+          const cart = JSON.parse(localStorage.getItem('simple_cart') || '[]');
+          cart.push({ id: item.id, title: item.title, price: item.price, size, qty: 1 });
+          localStorage.setItem('simple_cart', JSON.stringify(cart));
+          document.getElementById('msg').textContent = 'カートに追加しました（仮）';
+        });
+
+        // ログインボタン（Netlify Identity 呼び出し）
+        document.getElementById('loginBtn').addEventListener('click', () => {
+          if (window.netlifyIdentity) {
+            window.netlifyIdentity.open();
+          } else {
+            alert('ログインウィジェットが読み込まれていません。');
+          }
+        });
+
+        // 関連商品：同カテゴリから3件（自分は除外）
+        const related = items.filter(it => it.category === item.category && it.id !== item.id && it.published !== false).slice(0,3);
+        const relatedList = document.getElementById('relatedList');
+        if (related.length === 0) relatedList.innerHTML = '<p>関連商品はありません。</p>';
+        else relatedList.innerHTML = related.map(r => `
+          <a class="card" href="detail.html?id=${encodeURIComponent(r.id)}">
+            <img src="${r.image || '/assets/placeholder.png'}" alt="${r.title}" style="width:100%;height:80px;object-fit:cover;border-radius:4px">
+            <div>${r.title}</div>
+            <div style="color:#c0392b">¥${r.price ? Number(r.price).toLocaleString() : ''}</div>
+          </a>
+        `).join('');
+
       } catch (e) {
         main.innerHTML = '<p>読み込みに失敗しました。</p>';
         console.error(e);
