@@ -47,28 +47,41 @@
   </script>
 
   <!-- 新着商品スクリプト -->
-  <script>
-  (async function(){
-    try {
-      const res = await fetch('/products/products.json', {cache: 'no-store'});
-      if(!res.ok) return;
-      const data = await res.json();
-      const items = (data.items||[]).filter(i => i.published !== false);
-      // 先頭4件を新着として表示
-      const list = items.slice(0,4);
-      const grid = document.getElementById('newGrid');
-      grid.innerHTML = list.map(it => `
-        <a class="card" href="/products/detail.html?id=${encodeURIComponent(it.id)}">
-          <img src="${it.image || '/assets/placeholder.png'}" alt="${it.title || ''}">
-          <h3>${it.title || 'タイトルなし'}</h3>
-          <p class="price">${it.price ? '¥' + it.price.toLocaleString() : ''}</p>
-        </a>
-      `).join('');
-    } catch(e) {
-      console.error(e);
-    }
-  })();
-  </script>
+<script>
+(async function(){
+  try {
+    const res = await fetch('/products/products.json', {cache: 'no-store'});
+    if(!res.ok) return;
+    const data = await res.json();
+    const items = (data.items||[]).filter(i => i.published !== false);
+
+    // created_at をタイムスタンプ化（フォールバックは0）
+    items.forEach(it => {
+      it._ts = it.created_at ? Date.parse(it.created_at) : 0;
+    });
+
+    // created_at の降順でソート（新しい順）
+    items.sort((a,b) => (b._ts || 0) - (a._ts || 0));
+
+    // 最新4件だけ取得（件数はここで調整可能）
+    const list = items.slice(0,4);
+
+    const grid = document.getElementById('newGrid');
+    if(!grid) return;
+    grid.innerHTML = list.map(it => `
+      <a class="card" href="/products/detail.html?id=${encodeURIComponent(it.id)}">
+        <img src="${it.image || '/assets/placeholder.png'}" alt="${it.title || ''}">
+        <h3>${it.title || 'タイトルなし'}</h3>
+        <p class="price">${it.price ? '¥' + Number(it.price).toLocaleString() : ''}</p>
+      </a>
+    `).join('');
+
+  } catch(e) {
+    console.error('new arrivals load error', e);
+  }
+})();
+</script>
+
 
   <style>
   /* 新着商品の簡単なレイアウト */
