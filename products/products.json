@@ -82,9 +82,9 @@
       "created_at": "2025-09-14T11:22:00+09:00",
       "published": true,
       "sizes": [
-        "M",
-        "L",
-        "XL"
+        "[\"M\"",
+        "\"L\"",
+        "\"XL\"]"
       ],
       "title": "ダウンジャケット",
       "tags": [
@@ -177,9 +177,7 @@
       "price": 3980,
       "created_at": "2025-09-14T11:32:00+09:00",
       "published": true,
-      "sizes": [
-        "Free"
-      ],
+      "sizes": [],
       "title": "シルバーネックレス",
       "tags": [
         "ユニセックス",
