@@ -109,7 +109,15 @@
           const size = document.getElementById('sizeSelect') ? document.getElementById('sizeSelect').value : null;
           // 仮カートは localStorage へ保存（既存の cart を上書きする方式ではなく push）
           const cart = JSON.parse(localStorage.getItem('simple_cart') || '[]');
-          cart.push({ id: item.id, title: item.title, price: item.price, size, qty: 1, ts: Date.now() });
+          cart.push({ 
+  id: item.id, 
+  title: item.title, 
+  price: item.price, 
+  size, 
+  qty: 1, 
+  image: item.image || '/assets/placeholder.png' 
+});
+
           localStorage.setItem('simple_cart', JSON.stringify(cart));
           const msg = document.getElementById('msg');
           if (msg) msg.textContent = 'カートに追加しました（仮）';
