@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>カート</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; padding:20px; }
+    .wrap { max-width:1000px; margin:0 auto; }
+    .cart-list { display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+    .item { display:flex; gap:12px; align-items:center; border:1px solid #eee; padding:8px; border-radius:6px; background:#fff; }
+    .item img { width:96px; height:96px; object-fit:cover; border-radius:4px; }
+    .meta { flex:1; }
+    .meta h3 { margin:0 0 6px; font-size:16px; }
+    .controls { display:flex; gap:8px; align-items:center; }
+    .qty { width:56px; padding:6px; text-align:center; }
+    .price, .subtotal { font-weight:700; color:#c0392b; }
+    .actions { margin-top:18px; display:flex; gap:12px; }
+    button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; cursor:pointer; background:#fff; }
+    button.primary { background:#1a73e8; color:#fff; border-color:#1a73e8; }
+    .empty { text-align:center; color:#666; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>カート</h1>
+      <nav>
+        <a href="/">ホーム</a> |
+        <a href="/products/">商品一覧</a> |
+        <a href="/cart.html">カート</a>
+      </nav>
+    </header>
+
+    <div id="cartRoot">
+      <p class="empty">読み込み中...</p>
+    </div>
+
+    <div style="margin-top:16px;">
+      <a href="/products/">商品一覧へ戻る</a>
+    </div>
+  </div>
+
+  <script>
+    // -- localStorage のキー名（detail.html と合わせてある） --
+    const CART_KEY = 'simple_cart';
+
+    // 取得・保存のユーティリティ
+    function loadCart() {
+      try {
+        return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveCart(arr) {
+      localStorage.setItem(CART_KEY, JSON.stringify(arr));
+    }
+
+    // 同じ商品ID+サイズをまとめる（表示用に集約）
+    function aggregate(cart) {
+      const map = {};
+      cart.forEach(it => {
+        const key = `${it.id}__${it.size || ''}`;
+        if (!map[key]) map[key] = { ...it, qty: 0 };
+        map[key].qty = (map[key].qty || 0) + (it.qty || 1);
+      });
+      return Object.values(map);
+    }
+
+    function formatYen(n) {
+      return '¥' + (Number(n) || 0).toLocaleString();
+    }
+
+    function renderCart() {
+      const root = document.getElementById('cartRoot');
+      const cart = loadCart();
+      if (!cart || cart.length === 0) {
+        root.innerHTML = '<p class="empty">カートに商品がありません。</p>';
+        return;
+      }
+      const list = aggregate(cart);
+      const total = list.reduce((s, it) => s + (Number(it.price) || 0) * (it.qty || 1), 0);
+
+      root.innerHTML = `
+        <div class="cart-list">
+          ${list.map((it, idx) => `
+            <div class="item" data-key="${encodeURIComponent(it.id)}__${encodeURIComponent(it.size||'')}">
+              <img src="${it.image || '/assets/placeholder.png'}" alt="${escapeHtml(it.title||'')}">
+              <div class="meta">
+                <h3>${escapeHtml(it.title||'')}</h3>
+                <div>サイズ: ${escapeHtml(it.size || 'Free')}</div>
+                <div class="price">単価: ${formatYen(it.price)}</div>
+              </div>
+              <div>
+                <div class="controls">
+                  <input class="qty" type="number" min="1" value="${it.qty}" data-id="${escapeHtml(it.id)}" data-size="${escapeHtml(it.size||'')}" />
+                  <div class="subtotal">${formatYen((Number(it.price)||0) * (it.qty||1))}</div>
+                </div>
+                <div style="margin-top:8px;">
+                  <button class="remove" data-id="${escapeHtml(it.id)}" data-size="${escapeHtml(it.size||'')}">削除</button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="margin-top:16px;">
+          <div>合計: <span style="font-weight:800; color:#c0392b;">${formatYen(total)}</span></div>
+          <div class="actions">
+            <button id="clearCart">カートを空にする</button>
+            <button id="checkoutBtn" class="primary">購入へ進む（仮）</button>
+          </div>
+        </div>
+      `;
+
+      // qty イベント
+      root.querySelectorAll('.qty').forEach(el => {
+        el.addEventListener('change', (e) => {
+          const id = e.target.dataset.id;
+          const size = e.target.dataset.size;
+          const newQty = Math.max(1, Number(e.target.value) || 1);
+          updateQty(id, size, newQty);
+        });
+      });
+
+      // remove ボタン
+      root.querySelectorAll('.remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = btn.dataset.id;
+          const size = btn.dataset.size;
+          removeItem(id, size);
+        });
+      });
+
+      document.getElementById('clearCart').addEventListener('click', () => {
+        if (confirm('カートを空にしますか？')) {
+          saveCart([]);
+          renderCart();
+        }
+      });
+
+      document.getElementById('checkoutBtn').addEventListener('click', () => {
+        // 実運用ではここで決済サービスに送る
+        alert('購入フローは未実装です（デモ）。カートをクリアします。');
+        saveCart([]);
+        renderCart();
+      });
+    }
+
+    function updateQty(id, size, qty) {
+      const arr = loadCart();
+      // 単純な方針：同じ id+size のアイテムが複数入っている配列をまとめて扱うので、
+      // まず全配列から対象を取り出し、再構築する。実装はシンプルな方針にしてある。
+      let remain = [];
+      let foundQty = 0;
+      const others = [];
+      arr.forEach(it => {
+        if (it.id === id && String(it.size || '') === String(size || '')) {
+          foundQty += (it.qty || 1);
+        } else {
+          others.push(it);
+        }
+      });
+      // push new item with qty
+      if (qty > 0) {
+        // use one representative item from arr to keep title/price/image (or fallback)
+        const rep = arr.find(it => it.id === id && String(it.size || '') === String(size || '')) || { id, title: id, price: 0, image: '/assets/placeholder.png' };
+        // push qty times as items (detail.html pushes item-per-qty pattern)
+        const newItems = Array.from({length: qty}, ()=> ({ id: rep.id, title: rep.title, price: rep.price, image: rep.image, size: rep.size, qty: 1 }));
+        const merged = others.concat(newItems);
+        saveCart(merged);
+      } else {
+        saveCart(others);
+      }
+      renderCart();
+    }
+
+    function removeItem(id, size) {
+      const arr = loadCart();
+      const filtered = arr.filter(it => !(it.id === id && String(it.size || '') === String(size || '')));
+      saveCart(filtered);
+      renderCart();
+    }
+
+    function escapeHtml(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    // 初回レンダリング
+    renderCart();
+  </script>
+</body>
+</html>
