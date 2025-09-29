@@ -21,6 +21,8 @@
     button.primary { background:#1a73e8; color:#fff; border-color:#1a73e8; }
     .empty { text-align:center; color:#666; margin-top:20px; }
   </style>
+  <!-- Stripe.js を読み込み -->
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
   <div class="wrap">
@@ -43,10 +45,8 @@
   </div>
 
   <script>
-    // -- localStorage のキー名（detail.html と合わせてある） --
     const CART_KEY = 'simple_cart';
 
-    // 取得・保存のユーティリティ
     function loadCart() {
       try {
         return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -58,7 +58,6 @@
       localStorage.setItem(CART_KEY, JSON.stringify(arr));
     }
 
-    // 同じ商品ID+サイズをまとめる（表示用に集約）
     function aggregate(cart) {
       const map = {};
       cart.forEach(it => {
@@ -110,12 +109,11 @@
           <div>合計: <span style="font-weight:800; color:#c0392b;">${formatYen(total)}</span></div>
           <div class="actions">
             <button id="clearCart">カートを空にする</button>
-            <button id="checkoutBtn" class="primary">購入へ進む（仮）</button>
+            <button id="checkoutBtn" class="primary">購入へ進む</button>
           </div>
         </div>
       `;
 
-      // qty イベント
       root.querySelectorAll('.qty').forEach(el => {
         el.addEventListener('change', (e) => {
           const id = e.target.dataset.id;
@@ -125,7 +123,6 @@
         });
       });
 
-      // remove ボタン
       root.querySelectorAll('.remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const id = btn.dataset.id;
@@ -141,33 +138,39 @@
         }
       });
 
-      document.getElementById('checkoutBtn').addEventListener('click', () => {
-        // 実運用ではここで決済サービスに送る
-        alert('購入フローは未実装です（デモ）。カートをクリアします。');
-        saveCart([]);
-        renderCart();
+      // Stripe Checkout へ進む
+      document.getElementById('checkoutBtn').addEventListener('click', async () => {
+        const stripe = Stripe("pk_test_51SCeYuCPz6IXf4KxTydICBgY6nuxxSiKGczcWdn1nsPex6h4Dv4zvDziUcBaCL6mQnBZ8BFSf98s2jBkQaSgLluN00I8dwGDFf"); // あなたの公開可能キーに置き換え
+
+        try {
+          const res = await fetch("/.netlify/functions/create-checkout", {
+            method: "POST",
+          });
+          const data = await res.json();
+
+          const result = await stripe.redirectToCheckout({ sessionId: data.id });
+
+          if (result.error) {
+            alert(result.error.message);
+          }
+        } catch (err) {
+          console.error(err);
+          alert("エラーが発生しました");
+        }
       });
     }
 
     function updateQty(id, size, qty) {
       const arr = loadCart();
-      // 単純な方針：同じ id+size のアイテムが複数入っている配列をまとめて扱うので、
-      // まず全配列から対象を取り出し、再構築する。実装はシンプルな方針にしてある。
       let remain = [];
-      let foundQty = 0;
       const others = [];
       arr.forEach(it => {
-        if (it.id === id && String(it.size || '') === String(size || '')) {
-          foundQty += (it.qty || 1);
-        } else {
+        if (!(it.id === id && String(it.size || '') === String(size || ''))) {
           others.push(it);
         }
       });
-      // push new item with qty
       if (qty > 0) {
-        // use one representative item from arr to keep title/price/image (or fallback)
         const rep = arr.find(it => it.id === id && String(it.size || '') === String(size || '')) || { id, title: id, price: 0, image: '/assets/placeholder.png' };
-        // push qty times as items (detail.html pushes item-per-qty pattern)
         const newItems = Array.from({length: qty}, ()=> ({ id: rep.id, title: rep.title, price: rep.price, image: rep.image, size: rep.size, qty: 1 }));
         const merged = others.concat(newItems);
         saveCart(merged);
@@ -186,8 +189,8 @@
 
     function escapeHtml(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    // 初回レンダリング
     renderCart();
   </script>
 </body>
 </html>
+

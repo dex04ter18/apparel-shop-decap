@@ -1,0 +1,23 @@
+{
+  "name": "apparel-shop-decap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dex04ter18/apparel-shop-decap.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dex04ter18/apparel-shop-decap/issues"
+  },
+  "homepage": "https://github.com/dex04ter18/apparel-shop-decap#readme",
+  "dependencies": {
+    "stripe": "^18.5.0"
+  }
+}
