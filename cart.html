@@ -138,26 +138,31 @@
         }
       });
 
-      // Stripe Checkout へ進む
-      document.getElementById('checkoutBtn').addEventListener('click', async () => {
-        const stripe = Stripe("pk_test_51SCeYuCPz6IXf4KxTydICBgY6nuxxSiKGczcWdn1nsPex6h4Dv4zvDziUcBaCL6mQnBZ8BFSf98s2jBkQaSgLluN00I8dwGDFf"); // あなたの公開可能キーに置き換え
+// Stripe Checkout へ進む
+document.getElementById('checkoutBtn').addEventListener('click', async () => {
+  const stripe = Stripe("pk_test_51SCeYuCPz6IXf4KxTydICBgY6nuxxSiKGczcWdn1nsPex6h4Dv4zvDziUcBaCL6mQnBZ8BFSf98s2jBkQaSgLluN00I8dwGDFf"); // 公開可能キー
 
-        try {
-          const res = await fetch("/.netlify/functions/create-checkout", {
-            method: "POST",
-          });
-          const data = await res.json();
+  const cart = aggregate(loadCart()); // カートの中身を集約
 
-          const result = await stripe.redirectToCheckout({ sessionId: data.id });
+  try {
+    const res = await fetch("/.netlify/functions/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart }), // カート情報を送信
+    });
 
-          if (result.error) {
-            alert(result.error.message);
-          }
-        } catch (err) {
-          console.error(err);
-          alert("エラーが発生しました");
-        }
-      });
+    const data = await res.json();
+
+    const result = await stripe.redirectToCheckout({ sessionId: data.id });
+
+    if (result.error) {
+      alert(result.error.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("エラーが発生しました");
+  }
+});
     }
 
     function updateQty(id, size, qty) {
