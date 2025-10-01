@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>購入完了</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="assets/style.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; background:#f9f9f9; margin:0; padding:40px; }
+    .wrap { max-width:600px; margin:40px auto; text-align:center; background:#fff; padding:40px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    h1 { color:#2ecc71; margin-bottom:20px; }
+    p { color:#555; font-size:16px; margin-bottom:30px; }
+    a.button { display:inline-block; padding:12px 20px; border-radius:8px; background:#1a73e8; color:#fff; text-decoration:none; font-weight:600; }
+    .icon { font-size:64px; color:#2ecc71; margin-bottom:20px; }
+  </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>ご購入ありがとうございました！</h1>
-    <p>注文が正常に処理されました。</p>
-    <p><a href="/">トップページに戻る</a></p>
+    <div class="icon">✅</div>
+    <h1>ご購入ありがとうございます！</h1>
+    <p>ご注文が正常に完了しました。<br>商品の準備が整い次第ご連絡いたします。</p>
+    <a class="button" href="/products/">商品一覧へ戻る</a>
   </div>
 </body>
 </html>
